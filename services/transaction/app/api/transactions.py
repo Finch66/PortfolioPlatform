@@ -3,6 +3,7 @@ from sqlmodel import Session, select
 
 from app.core.database import get_session
 from app.domain.models import Transaction
+from app.domain.services import TransactionService, DomainException
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
 
@@ -12,10 +13,12 @@ def create_transaction(
     transaction: Transaction,
     session: Session = Depends(get_session),
 ):
-    session.add(transaction)
-    session.commit()
-    session.refresh(transaction)
-    return transaction
+    service = TransactionService(session)
+
+    try:
+        return service.create_transaction(transaction)
+    except DomainException as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.get("/", response_model=list[Transaction])
