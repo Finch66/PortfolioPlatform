@@ -44,3 +44,5 @@ Thumbs.db
 
 # Python version managers
 .python-version
+
+*.pyc
