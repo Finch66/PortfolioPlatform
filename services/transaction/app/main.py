@@ -1,6 +1,7 @@
 """FastAPI application wiring for the Transactions Service."""
 
 import logging
+import time
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -9,6 +10,7 @@ from sqlmodel import SQLModel
 
 from app.api.transactions import router as transactions_router
 from app.core.database import engine
+from app.core.errors import NotFoundException
 from app.domain.services import DomainException
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -27,12 +29,38 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Transactions Service", redirect_slashes=False, lifespan=lifespan)
 
 
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start = time.time()
+    response = await call_next(request)
+    duration_ms = (time.time() - start) * 1000
+    logger.info(
+        "request",
+        extra={
+            "method": request.method,
+            "path": request.url.path,
+            "status_code": response.status_code,
+            "duration_ms": round(duration_ms, 2),
+        },
+    )
+    return response
+
+
 @app.exception_handler(DomainException)
 async def domain_exception_handler(request: Request, exc: DomainException):
     logger.warning("Domain error on %s %s: %s", request.method, request.url.path, exc)
     return JSONResponse(
         status_code=400,
         content={"code": "domain_error", "message": str(exc)},
+    )
+
+
+@app.exception_handler(NotFoundException)
+async def not_found_exception_handler(request: Request, exc: NotFoundException):
+    logger.info("Not found on %s %s: %s", request.method, request.url.path, exc)
+    return JSONResponse(
+        status_code=404,
+        content={"code": "not_found", "message": str(exc)},
     )
 
 

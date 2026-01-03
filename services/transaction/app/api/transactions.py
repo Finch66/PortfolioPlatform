@@ -1,6 +1,9 @@
-from fastapi import APIRouter, Depends
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, Response
 from sqlmodel import Session, select
 
+from app.core.errors import NotFoundException
 from app.api.schemas import TransactionCreate, TransactionRead
 from app.core.database import get_session
 from app.domain.models import Transaction
@@ -26,3 +29,16 @@ def list_transactions(
     session: Session = Depends(get_session),
 ):
     return session.exec(select(Transaction)).all()
+
+
+@router.delete("/{transaction_id}", status_code=204)
+def delete_transaction(
+    transaction_id: UUID,
+    session: Session = Depends(get_session),
+):
+    transaction = session.get(Transaction, transaction_id)
+    if transaction is None:
+        raise NotFoundException(f"Transaction {transaction_id} not found")
+    session.delete(transaction)
+    session.commit()
+    return Response(status_code=204)

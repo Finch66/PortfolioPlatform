@@ -22,6 +22,8 @@ docker compose up --build
 - Postgres ha healthcheck; l'API parte quando il DB e' pronto.
 - Variabili: `DATABASE_URL` gia' impostata in `.env.example/transactions.env`.
 - Swagger UI: http://localhost:8000/docs
+- Pool DB con `pool_pre_ping=True` per riusare le connessioni anche se il DB si riavvia.
+- Logging: middleware HTTP logga metodo, path, status e durata in ms.
 
 ## Avvio locale senza container
 ```bash

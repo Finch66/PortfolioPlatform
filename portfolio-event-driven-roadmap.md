@@ -24,7 +24,7 @@ Preparare un ambiente di sviluppo professionale e riproducibile.
 - [x] Docker installato e funzionante
 - [x] Docker Compose funzionante
 - [ ] VS Code configurato
-- [ ] README.md iniziale
+- [x] README.md iniziale
 
 ### Competenze acquisite
 - Tooling professionale
@@ -61,7 +61,7 @@ Costruire un backend solido per registrare operazioni finanziarie.
 - [x] PostgreSQL
 - [x] SQLAlchemy
 - [x] Validazioni corrette
-- [ ] Error handling coerente
+- [x] Error handling coerente
 - [x] OpenAPI / Swagger
 - [x] Test minimi
 

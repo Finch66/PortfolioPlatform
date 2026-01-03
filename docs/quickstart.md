@@ -10,6 +10,7 @@ docker compose up --build
 ```
 - Postgres ha un healthcheck (`pg_isready`); l'API parte solo quando il DB è pronto.
 - Per fermare: `docker compose down` (usa `-v` per rimuovere il volume dati).
+- Logging: middleware HTTP logga metodo, path, status e durata in ms.
 
 ## Variabili d'ambiente
 - L'API legge `DATABASE_URL`; nel compose è valorizzata da `.env.example/transactions.env` con:
@@ -38,3 +39,15 @@ Invoke-RestMethod -Method Get -Uri "http://localhost:8000/transactions"
 - Da `services/transaction`: `pytest`
   - Coprono invarianti di dominio (quantity > 0, data futura, sell oltre il posseduto) e API POST/GET.
   - Usano SQLite in-memory con override di `get_session`, quindi non richiedono Postgres.
+
+## Script PowerShell (shortcut)
+- `.\scripts\up.ps1` (aggiungi `-Build` per forzare la build)
+- `.\scripts\down.ps1`
+- `.\scripts\logs.ps1`
+- `.\scripts\test.ps1` (ricorda di attivare la venv prima)
+
+## Migrazioni (Alembic)
+- Installazione dipendenze dev già include `alembic`.
+- Comando base (da `services/transaction`): `alembic upgrade head` (usa `DATABASE_URL` corrente).
+- Generare nuova migrazione: `alembic revision --autogenerate -m "desc"` dopo aver modificato i modelli SQLModel.
+- Gli script sono in `services/transaction/migrations/`.

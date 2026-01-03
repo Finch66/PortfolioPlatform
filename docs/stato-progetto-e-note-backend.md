@@ -6,7 +6,9 @@
 - Regole di dominio: quantity > 0, data non futura, currency a 3 lettere, blocco vendite oltre il posseduto, con `DomainException` mappata a HTTP 400.
 - Config DB e sessione SQLModel in `services/transaction/app/core/config.py` e `services/transaction/app/core/database.py` con variabile `DATABASE_URL`.
 - Dockerfile per il servizio presente; `docker-compose.yml` corretto con `context: ./services/transaction`, env file `.env.example/transactions.env`, healthcheck Postgres e `depends_on: service_healthy`.
-- Documentazione di dominio e panoramica codice in `docs/domain-model.md`, `docs/code-overview.md` e quickstart in `docs/quickstart.md`.
+- Documentazione di dominio e panoramica codice in `docs/domain-model.md`, `docs/code-overview.md`, quickstart in `docs/quickstart.md`.
+- DELETE /transactions/{id} con 404 strutturato.
+- Stub di evento `TransactionCreated` loggato post-commit in `app/core/events.py`.
 
 ## Passaggi gia' fatti (dedotti dal codice)
 1. Definito il modello di dominio e le invarianti (docs/domain-model.md).
@@ -15,12 +17,10 @@
 4. Configurato accesso DB via SQLModel/psycopg2 e dependency injection `get_session` (app/core/database.py).
 5. Preparato packaging Python (pyproject) e Dockerfile per containerizzare il servizio (services/transaction/Dockerfile).
 6. Corretto docker-compose con build path giusto, env file, healthcheck e dipendenza da Postgres pronto.
-7. Aggiunti test Pytest (API + invarianti) in `services/transaction/tests/test_transactions_api.py`; 4 test passano con SQLite in-memory e override della sessione.
+7. Aggiunti test Pytest (API + invarianti + DELETE) in `services/transaction/tests/test_transactions_api.py`; passano con SQLite in-memory e override della sessione.
 
 ## Cose da completare/subito utili
-- Aggiungere README/quickstart e script make/poetry per setup locale (quickstart gia' presente, resta README e comandi helper).
 - Migliorare error handling/logging strutturato (in parte presente con handler globale 400/500).
-- Gestire DELETE /transactions/{id}.
 - Valutare emissione eventi (TransactionCreated) dopo il commit per la pipeline event-driven.
 
 ## Mini guida per studiare il backend

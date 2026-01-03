@@ -107,3 +107,29 @@ def test_get_returns_inserted(client):
     assert resp.status_code == 200
     data = resp.json()
     assert any(item["asset_id"] == "ETF999" for item in data)
+
+
+def test_delete_transaction_success(client):
+    payload = {
+        "asset_id": "ETFDEL",
+        "operation_type": "BUY",
+        "quantity": 1,
+        "price": 10,
+        "currency": "USD",
+        "trade_date": "2024-01-10",
+    }
+    created = client.post("/transactions", json=payload).json()
+    tx_id = created["id"]
+
+    resp_delete = client.delete(f"/transactions/{tx_id}")
+    assert resp_delete.status_code == 204
+
+    resp_list = client.get("/transactions").json()
+    assert all(item["id"] != tx_id for item in resp_list)
+
+
+def test_delete_transaction_not_found(client):
+    resp = client.delete("/transactions/00000000-0000-0000-0000-000000000000")
+    assert resp.status_code == 404
+    body = resp.json()
+    assert body["code"] == "not_found"

@@ -2,6 +2,7 @@ from datetime import date
 from sqlmodel import Session, select
 
 from app.domain.models import Transaction, OperationType
+from app.core.events import publish_transaction_created
 
 
 class DomainException(Exception):
@@ -19,6 +20,18 @@ class TransactionService:
         self.session.add(transaction)
         self.session.commit()
         self.session.refresh(transaction)
+
+        publish_transaction_created(
+            {
+                "id": str(transaction.id),
+                "asset_id": transaction.asset_id,
+                "operation_type": transaction.operation_type,
+                "quantity": transaction.quantity,
+                "price": transaction.price,
+                "currency": transaction.currency,
+                "trade_date": transaction.trade_date.isoformat(),
+            }
+        )
         return transaction
 
     def _validate_basic_rules(self, transaction: Transaction):
