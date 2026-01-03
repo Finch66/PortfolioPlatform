@@ -1,0 +1,40 @@
+# Quickstart - Transactions Service
+
+## Prerequisiti
+- Docker Desktop installato e attivo.
+- Porta 8000 libera (API) e 5432 libera (Postgres host).
+
+## Avvio con Docker Compose
+```bash
+docker compose up --build
+```
+- Postgres ha un healthcheck (`pg_isready`); l'API parte solo quando il DB è pronto.
+- Per fermare: `docker compose down` (usa `-v` per rimuovere il volume dati).
+
+## Variabili d'ambiente
+- L'API legge `DATABASE_URL`; nel compose è valorizzata da `.env.example/transactions.env` con:
+  `postgresql://postgres:postgres@postgres:5432/transactions`
+
+## Smoke test
+1) Apri Swagger UI: http://localhost:8000/docs  
+   - `POST /transactions` → inserisci:
+   ```json
+   {"asset_id":"ETF123","operation_type":"BUY","quantity":10,"price":100,"currency":"USD","trade_date":"2024-01-10"}
+   ```
+   - `GET /transactions` → dovresti vedere l'elemento inserito.
+2) Da terminale (PowerShell):
+```powershell
+Invoke-RestMethod -Method Post -Uri "http://localhost:8000/transactions" -ContentType "application/json" -Body '{"asset_id":"ETF123","operation_type":"BUY","quantity":10,"price":100,"currency":"USD","trade_date":"2024-01-10"}'
+Invoke-RestMethod -Method Get -Uri "http://localhost:8000/transactions"
+```
+
+## Sviluppo locale senza container
+- Avvia Postgres locale e esporta `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/transactions`.
+- Da `services/transaction`: `uvicorn app.main:app --reload`
+- Swagger su http://localhost:8000/docs
+
+## Test (Pytest)
+- Installa dipendenze dev dalla root: `pip install -r requirements-dev.txt` (attiva il virtualenv se lo usi).
+- Da `services/transaction`: `pytest`
+  - Coprono invarianti di dominio (quantity > 0, data futura, sell oltre il posseduto) e API POST/GET.
+  - Usano SQLite in-memory con override di `get_session`, quindi non richiedono Postgres.

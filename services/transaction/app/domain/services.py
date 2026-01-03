@@ -22,6 +22,13 @@ class TransactionService:
         return transaction
 
     def _validate_basic_rules(self, transaction: Transaction):
+        # Normalize trade_date if it arrives as a string (e.g., from JSON)
+        if isinstance(transaction.trade_date, str):
+            try:
+                transaction.trade_date = date.fromisoformat(transaction.trade_date)
+            except ValueError:
+                raise DomainException("Invalid trade_date format, expected YYYY-MM-DD")
+
         if transaction.quantity <= 0:
             raise DomainException("Quantity must be greater than zero")
 

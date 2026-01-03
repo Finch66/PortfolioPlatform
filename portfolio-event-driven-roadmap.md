@@ -19,10 +19,10 @@ Preparare un ambiente di sviluppo professionale e riproducibile.
 - Docker operativo
 
 ### Checklist
-- [ ] Repository Git creato
-- [ ] Python >= 3.11 installato
-- [ ] Docker installato e funzionante
-- [ ] Docker Compose funzionante
+- [x] Repository Git creato
+- [x] Python >= 3.11 installato
+- [x] Docker installato e funzionante
+- [x] Docker Compose funzionante
 - [ ] VS Code configurato
 - [ ] README.md iniziale
 
@@ -56,14 +56,14 @@ Costruire un backend solido per registrare operazioni finanziarie.
 - operation_type
 
 ### Checklist
-- [ ] FastAPI
-- [ ] Modelli Pydantic
-- [ ] PostgreSQL
-- [ ] SQLAlchemy
-- [ ] Validazioni corrette
+- [x] FastAPI
+- [x] Modelli Pydantic
+- [x] PostgreSQL
+- [x] SQLAlchemy
+- [x] Validazioni corrette
 - [ ] Error handling coerente
-- [ ] OpenAPI / Swagger
-- [ ] Test minimi
+- [x] OpenAPI / Swagger
+- [x] Test minimi
 
 ### Output
 - Servizio backend standalone e funzionante
@@ -80,10 +80,10 @@ Costruire un backend solido per registrare operazioni finanziarie.
 Rendere il servizio eseguibile come in produzione.
 
 ### Checklist
-- [ ] Dockerfile per API
-- [ ] docker-compose.yml
-- [ ] Container PostgreSQL
-- [ ] Configurazione via variabili ambiente
+- [x] Dockerfile per API
+- [x] docker-compose.yml
+- [x] Container PostgreSQL
+- [x] Configurazione via variabili ambiente
 - [ ] Logging leggibile
 
 ### Criterio di successo

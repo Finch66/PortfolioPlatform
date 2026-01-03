@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   postgres:
     image: postgres:15
@@ -8,6 +6,12 @@ services:
       POSTGRES_DB: transactions
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d transactions"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
     ports:
       - "5432:5432"
     volumes:
@@ -15,14 +19,15 @@ services:
 
   transactions-service:
     build:
-      context: ./services/transactions
+      context: ./services/transaction
     container_name: transactions-service
     env_file:
-      - .env.example
+      - .env.example/transactions.env
     ports:
       - "8000:8000"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
 volumes:
   postgres_data:
