@@ -1,4 +1,5 @@
 # Event-Driven Portfolio Platform (Transactions Service)
+![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white) ![Tests](https://img.shields.io/badge/tests-pytest-blue)
 
 Backend di esempio per gestire transazioni BUY/SELL con FastAPI + SQLModel. Questa repo contiene il servizio transazioni, docker-compose per Postgres e la documentazione di dominio/roadmap.
 
@@ -18,8 +19,8 @@ pip install -r requirements-dev.txt
 ```bash
 docker compose up --build
 ```
-- Postgres ha healthcheck; l'API parte quando il DB è pronto.
-- Variabili: `DATABASE_URL` già impostata in `.env.example/transactions.env`.
+- Postgres ha healthcheck; l'API parte quando il DB e' pronto.
+- Variabili: `DATABASE_URL` gia' impostata in `.env.example/transactions.env`.
 - Swagger UI: http://localhost:8000/docs
 
 ## Avvio locale senza container
@@ -35,6 +36,17 @@ cd services/transaction
 pytest
 ```
 - Coprono invarianti (quantity>0, date future, sell oltre posseduto) e API POST/GET. Usano SQLite in-memory, non serve Postgres.
+
+## Makefile (scorciatoie)
+- `make up` / `make down` / `make logs`
+- `make test` (da root, lancia pytest nel servizio)
+- `make build` (docker compose build)
+
+## Script PowerShell (cartella `scripts/`)
+- `scripts\up.ps1` (usa `-Build` per forzare build): `.\scripts\up.ps1 -Build`
+- `scripts\down.ps1`: `.\scripts\down.ps1`
+- `scripts\logs.ps1`: `.\scripts\logs.ps1`
+- `scripts\test.ps1`: `.\scripts\test.ps1`
 
 ## Documentazione utile
 - Roadmap: `portfolio-event-driven-roadmap.md`
