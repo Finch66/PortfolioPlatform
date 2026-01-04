@@ -1,8 +1,11 @@
 from datetime import date
+from uuid import UUID
 from sqlmodel import Session, select
 
 from app.domain.models import Transaction, OperationType
-from app.core.events import publish_transaction_created
+from app.core.events import publish_transaction_created, publish_transaction_deleted
+
+ALLOWED_CURRENCIES = {"USD", "EUR", "GBP"}
 
 
 class DomainException(Exception):
@@ -13,7 +16,15 @@ class TransactionService:
     def __init__(self, session: Session):
         self.session = session
 
-    def create_transaction(self, transaction: Transaction) -> Transaction:
+    def create_transaction(self, transaction: Transaction, idempotency_key: str | None = None) -> Transaction:
+        if idempotency_key:
+            existing = self.session.exec(
+                select(Transaction).where(Transaction.idempotency_key == idempotency_key)
+            ).first()
+            if existing:
+                return existing
+            transaction.idempotency_key = idempotency_key
+
         self._validate_basic_rules(transaction)
         self._validate_sell_quantity(transaction)
 
@@ -34,6 +45,21 @@ class TransactionService:
         )
         return transaction
 
+    def delete_transaction(self, transaction_id: str | UUID) -> None:
+        tx_id = transaction_id if isinstance(transaction_id, UUID) else UUID(str(transaction_id))
+        tx = self.session.get(Transaction, tx_id)
+        if tx is None:
+            raise DomainException(f"Transaction {tx_id} not found")
+        self.session.delete(tx)
+        self.session.commit()
+        publish_transaction_deleted(
+            {
+                "id": str(tx_id),
+                "asset_id": tx.asset_id,
+                "operation_type": tx.operation_type,
+            }
+        )
+
     def _validate_basic_rules(self, transaction: Transaction):
         # Normalize trade_date if it arrives as a string (e.g., from JSON)
         if isinstance(transaction.trade_date, str):
@@ -48,8 +74,12 @@ class TransactionService:
         if transaction.trade_date > date.today():
             raise DomainException("Trade date cannot be in the future")
 
-        if len(transaction.currency) != 3:
+        currency = transaction.currency.upper()
+        transaction.currency = currency
+        if len(currency) != 3:
             raise DomainException("Invalid currency code")
+        if currency not in ALLOWED_CURRENCIES:
+            raise DomainException(f"Unsupported currency: {currency}")
 
     def _validate_sell_quantity(self, transaction: Transaction):
         if transaction.operation_type != OperationType.SELL:

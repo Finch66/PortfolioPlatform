@@ -17,3 +17,4 @@ class Transaction(SQLModel, table=True):
     price: float
     currency: str
     trade_date: date
+    idempotency_key: str | None = Field(default=None, index=True, unique=True, nullable=True)

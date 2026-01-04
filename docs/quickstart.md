@@ -10,7 +10,7 @@ docker compose up --build
 ```
 - Postgres ha un healthcheck (`pg_isready`); l'API parte solo quando il DB è pronto.
 - Per fermare: `docker compose down` (usa `-v` per rimuovere il volume dati).
-- Logging: middleware HTTP logga metodo, path, status e durata in ms.
+- Logging: middleware HTTP logga in JSON con request_id, metodo, path, status e durata in ms.
 
 ## Variabili d'ambiente
 - L'API legge `DATABASE_URL`; nel compose è valorizzata da `.env.example/transactions.env` con:
@@ -45,9 +45,16 @@ Invoke-RestMethod -Method Get -Uri "http://localhost:8000/transactions"
 - `.\scripts\down.ps1`
 - `.\scripts\logs.ps1`
 - `.\scripts\test.ps1` (ricorda di attivare la venv prima)
+- `.\scripts\migrate.ps1` (applica le migrazioni Alembic al Postgres del compose esposto su localhost; richiede venv attiva con alembic)
 
 ## Migrazioni (Alembic)
 - Installazione dipendenze dev già include `alembic`.
+- Nota: `pyproject.toml` del servizio usa setuptools con `include = ["app*"]` (necessario dopo aver aggiunto `migrations`), quindi installa in editable dalla root con `pip install -r requirements-dev.txt`.
 - Comando base (da `services/transaction`): `alembic upgrade head` (usa `DATABASE_URL` corrente).
 - Generare nuova migrazione: `alembic revision --autogenerate -m "desc"` dopo aver modificato i modelli SQLModel.
 - Gli script sono in `services/transaction/migrations/`.
+
+## Idempotenza & API
+- Le POST supportano header `Idempotency-Key`: se ripeti la stessa chiave, ritorna la transazione già creata.
+- GET /transactions supporta paginazione con `skip` e `limit`.
+- Currencies ammesse: USD, EUR, GBP (validazione di dominio).

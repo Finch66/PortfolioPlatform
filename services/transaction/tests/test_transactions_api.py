@@ -103,7 +103,7 @@ def test_get_returns_inserted(client):
         "trade_date": "2024-01-10",
     }
     client.post("/transactions", json=payload)
-    resp = client.get("/transactions")
+    resp = client.get("/transactions", params={"skip": 0, "limit": 10})
     assert resp.status_code == 200
     data = resp.json()
     assert any(item["asset_id"] == "ETF999" for item in data)
@@ -133,3 +133,45 @@ def test_delete_transaction_not_found(client):
     assert resp.status_code == 404
     body = resp.json()
     assert body["code"] == "not_found"
+
+
+def test_events_published_in_memory(client, monkeypatch):
+    # Clear in-memory bus
+    from app.core import events
+    events.event_bus.clear()
+
+    payload = {
+        "asset_id": "EVT1",
+        "operation_type": "BUY",
+        "quantity": 1,
+        "price": 1,
+        "currency": "USD",
+        "trade_date": "2024-01-10",
+    }
+    created = client.post("/transactions", json=payload).json()
+    tx_id = created["id"]
+
+    client.delete(f"/transactions/{tx_id}")
+
+    evts = events.event_bus.list_events()
+    names = [e.name for e in evts]
+    assert "TransactionCreated" in names
+    assert "TransactionDeleted" in names
+
+
+def test_idempotency_key_returns_same_transaction(client):
+    payload = {
+        "asset_id": "ETF777",
+        "operation_type": "BUY",
+        "quantity": 1,
+        "price": 10,
+        "currency": "USD",
+        "trade_date": "2024-01-10",
+    }
+    headers = {"Idempotency-Key": "demo-key"}
+    resp1 = client.post("/transactions", json=payload, headers=headers)
+    resp2 = client.post("/transactions", json=payload, headers=headers)
+
+    assert resp1.status_code == 200
+    assert resp2.status_code == 200
+    assert resp1.json()["id"] == resp2.json()["id"]

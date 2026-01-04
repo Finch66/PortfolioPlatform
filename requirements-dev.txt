@@ -2,3 +2,4 @@
 pytest
 httpx
 alembic
+python-json-logger

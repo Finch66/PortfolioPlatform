@@ -64,6 +64,8 @@ Costruire un backend solido per registrare operazioni finanziarie.
 - [x] Error handling coerente
 - [x] OpenAPI / Swagger
 - [x] Test minimi
+- [x] Idempotenza / pagination base
+- [x] Eventi dominio in memoria (TransactionCreated/Deleted)
 
 ### Output
 - Servizio backend standalone e funzionante

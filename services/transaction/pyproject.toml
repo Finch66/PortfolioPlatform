@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=63", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "transactions-service"
 version = "0.1.0"
@@ -9,8 +13,12 @@ dependencies = [
   "uvicorn[standard]",
   "sqlmodel",
   "psycopg2-binary",
-  "python-dotenv"
+  "python-dotenv",
+  "python-json-logger"
 ]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
 
 [tool.uvicorn]
 factory = false

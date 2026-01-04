@@ -1,11 +1,14 @@
 """FastAPI application wiring for the Transactions Service."""
 
 import logging
+import sys
 import time
+import uuid
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from pythonjsonlogger import jsonlogger
 from sqlmodel import SQLModel
 
 from app.api.transactions import router as transactions_router
@@ -13,8 +16,15 @@ from app.core.database import engine
 from app.core.errors import NotFoundException
 from app.domain.services import DomainException
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+handler = logging.StreamHandler(sys.stdout)
+formatter = jsonlogger.JsonFormatter(
+    "%(asctime)s %(levelname)s %(name)s %(message)s %(request_id)s %(method)s %(path)s %(status_code)s %(duration_ms)s"
+)
+handler.setFormatter(formatter)
 logger = logging.getLogger("transactions_service")
+logger.setLevel(logging.INFO)
+logger.handlers = [handler]
+logger.propagate = False
 
 
 @asynccontextmanager
@@ -31,12 +41,16 @@ app = FastAPI(title="Transactions Service", redirect_slashes=False, lifespan=lif
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
+    request_id = str(uuid.uuid4())
+    request.state.request_id = request_id
     start = time.time()
     response = await call_next(request)
     duration_ms = (time.time() - start) * 1000
+    response.headers["X-Request-ID"] = request_id
     logger.info(
         "request",
         extra={
+            "request_id": request_id,
             "method": request.method,
             "path": request.url.path,
             "status_code": response.status_code,
@@ -48,7 +62,11 @@ async def log_requests(request: Request, call_next):
 
 @app.exception_handler(DomainException)
 async def domain_exception_handler(request: Request, exc: DomainException):
-    logger.warning("Domain error on %s %s: %s", request.method, request.url.path, exc)
+    request_id = getattr(request.state, "request_id", None)
+    logger.warning(
+        "Domain error",
+        extra={"request_id": request_id, "method": request.method, "path": request.url.path},
+    )
     return JSONResponse(
         status_code=400,
         content={"code": "domain_error", "message": str(exc)},
@@ -57,7 +75,11 @@ async def domain_exception_handler(request: Request, exc: DomainException):
 
 @app.exception_handler(NotFoundException)
 async def not_found_exception_handler(request: Request, exc: NotFoundException):
-    logger.info("Not found on %s %s: %s", request.method, request.url.path, exc)
+    request_id = getattr(request.state, "request_id", None)
+    logger.info(
+        "Not found",
+        extra={"request_id": request_id, "method": request.method, "path": request.url.path},
+    )
     return JSONResponse(
         status_code=404,
         content={"code": "not_found", "message": str(exc)},
@@ -66,7 +88,11 @@ async def not_found_exception_handler(request: Request, exc: NotFoundException):
 
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(request: Request, exc: Exception):
-    logger.exception("Unhandled error on %s %s", request.method, request.url.path)
+    request_id = getattr(request.state, "request_id", None)
+    logger.exception(
+        "Unhandled error",
+        extra={"request_id": request_id, "method": request.method, "path": request.url.path},
+    )
     return JSONResponse(
         status_code=500,
         content={"code": "internal_error", "message": "Unexpected error"},

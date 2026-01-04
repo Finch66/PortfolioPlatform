@@ -46,3 +46,4 @@ Thumbs.db
 .python-version
 
 *.pyc
+services/transaction/app.db

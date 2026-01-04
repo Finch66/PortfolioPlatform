@@ -23,7 +23,11 @@ docker compose up --build
 - Variabili: `DATABASE_URL` gia' impostata in `.env.example/transactions.env`.
 - Swagger UI: http://localhost:8000/docs
 - Pool DB con `pool_pre_ping=True` per riusare le connessioni anche se il DB si riavvia.
-- Logging: middleware HTTP logga metodo, path, status e durata in ms.
+- Logging: middleware HTTP logga in JSON con request_id, metodo, path, status e durata in ms. Esempio:
+```json
+{"asctime": "...", "levelname": "INFO", "name": "transactions_service", "message": "request", "request_id": "uuid", "method": "POST", "path": "/transactions", "status_code": 200, "duration_ms": 5.2}
+```
+- Idempotenza: nelle POST puoi impostare l'header `Idempotency-Key` (es. `demo-1`) per ottenere lo stesso `id` su retry; in Swagger compare tra i Parameters quando l'API è aggiornata.
 
 ## Avvio locale senza container
 ```bash
