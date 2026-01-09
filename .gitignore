@@ -51,3 +51,4 @@ Thumbs.db
 
 *.pyc
 services/transaction/app.db
+services/transaction/tests/test.db
