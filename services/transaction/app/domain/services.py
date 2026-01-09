@@ -68,6 +68,11 @@ class TransactionService:
             except ValueError:
                 raise DomainException("Invalid trade_date format, expected YYYY-MM-DD")
 
+        if transaction.asset_name:
+            transaction.asset_name = transaction.asset_name.strip()
+        if transaction.asset_type:
+            transaction.asset_type = transaction.asset_type.strip().upper()
+
         if transaction.quantity <= 0:
             raise DomainException("Quantity must be greater than zero")
 

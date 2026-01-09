@@ -26,3 +26,8 @@ Questa mappa spiega cosa contiene ogni file principale e come si collega al flus
 2. Il router `/transactions` (`api/transactions.py`) gestisce POST/GET, ottenendo una sessione DB da `get_session`.
 3. `TransactionService` (`domain/services.py`) applica invarianti e salva su DB usando i modelli SQLModel (`domain/models.py`).
 4. All avvio, `SQLModel.metadata.create_all(engine)` (in `main.py`) crea le tabelle in base ai modelli, usando la connessione definita in `core/database.py` con la `DATABASE_URL` letta in `core/config.py`.
+
+## Portfolio e import
+- `services/transaction/app/api/imports.py`: endpoint `POST /imports/transactions` per caricare CSV.
+- `services/transaction/app/api/portfolio.py`: endpoint `GET /portfolio` + metriche/allocazioni.
+- `services/transaction/app/domain/portfolio.py`: aggregazioni e calcoli per holdings, metriche e distribuzioni.

@@ -31,3 +31,8 @@
 - Modello dati: `app/domain/models.py` definisce tabella `Transaction` con UUID primario, asset_id, operation_type, quantity, price, currency, trade_date. Enum `OperationType` limita a BUY/SELL.
 - Esecuzione locale: esporta `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/transactions`, attiva Postgres, poi da `services/transaction` lancia `uvicorn app.main:app --reload`. In container usa compose con env file e healthcheck.
 - Spunti di approfondimento: event sourcing e publish di eventi dopo il commit; gestione concorrenza/transazioni DB; aggiungere idempotenza; test di integrazione con DB; pipeline di migrazioni (Alembic) se lo schema evolve.
+
+## Aggiunte recenti
+- Import CSV: `POST /imports/transactions` con sample `docs/sample-portfolio.csv`.
+- Portfolio: `GET /portfolio`, `GET /portfolio/metrics`, `GET /portfolio/allocation`.
+- Frontend React in `frontend/` per upload e dashboard locale.

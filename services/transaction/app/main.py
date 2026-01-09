@@ -1,16 +1,20 @@
 """FastAPI application wiring for the Transactions Service."""
 
 import logging
+import os
 import sys
 import time
 import uuid
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pythonjsonlogger import jsonlogger
 from sqlmodel import SQLModel
 
+from app.api.imports import router as imports_router
+from app.api.portfolio import router as portfolio_router
 from app.api.transactions import router as transactions_router
 from app.core.database import engine
 from app.core.errors import NotFoundException
@@ -37,6 +41,19 @@ async def lifespan(app: FastAPI):
 # Create the ASGI app with a descriptive title for docs/UIs.
 # redirect_slashes=False evita i 307 automatici tra path con/senza trailing slash.
 app = FastAPI(title="Transactions Service", redirect_slashes=False, lifespan=lifespan)
+
+origins = [
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+    if origin.strip()
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.middleware("http")
@@ -101,3 +118,5 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 
 # Mount the transactions API routes under their configured prefix.
 app.include_router(transactions_router)
+app.include_router(imports_router)
+app.include_router(portfolio_router)

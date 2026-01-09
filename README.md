@@ -53,6 +53,20 @@ pytest
 - `scripts\down.ps1`: `.\scripts\down.ps1`
 - `scripts\logs.ps1`: `.\scripts\logs.ps1`
 - `scripts\test.ps1`: `.\scripts\test.ps1`
+- `scripts\start-all.ps1`: avvia Docker, migrazioni e frontend in automatico.
+
+## API Portfolio
+- Import CSV: endpoint `POST /imports/transactions` (upload file CSV, vedi `docs/sample-portfolio.csv`).
+- Portfolio: `GET /portfolio`, `GET /portfolio/metrics`, `GET /portfolio/allocation`.
+
+## Frontend (mini UI React)
+```bash
+cd frontend
+npm install
+npm run dev
+```
+- UI su http://localhost:5173
+- API su http://localhost:8000 (configurabile con `VITE_API_BASE_URL`)
 
 ## Documentazione utile
 - Roadmap: `portfolio-event-driven-roadmap.md`

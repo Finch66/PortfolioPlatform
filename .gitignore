@@ -38,6 +38,10 @@ dmypy.json
 .vscode/
 .idea/
 
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
 # OS metadata
 .DS_Store
 Thumbs.db

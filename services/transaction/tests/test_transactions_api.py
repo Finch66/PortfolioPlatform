@@ -175,3 +175,22 @@ def test_idempotency_key_returns_same_transaction(client):
     assert resp1.status_code == 200
     assert resp2.status_code == 200
     assert resp1.json()["id"] == resp2.json()["id"]
+
+
+def test_import_csv_and_portfolio_snapshot(client):
+    csv_data = "\n".join(
+        [
+            "asset_id,asset_name,asset_type,operation_type,quantity,price,currency,trade_date",
+            "ETF_TEST,Test ETF,ETF,BUY,2,100.0,EUR,2024-01-10",
+            "ETF_TEST,Test ETF,ETF,BUY,1,110.0,EUR,2024-01-11",
+        ]
+    )
+    files = {"file": ("sample.csv", csv_data, "text/csv")}
+    resp = client.post("/imports/transactions", files=files)
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["inserted"] == 2
+
+    snapshot = client.get("/portfolio").json()
+    assert snapshot["metrics"]["total_assets"] == 1
+    assert snapshot["holdings"][0]["asset_id"] == "ETF_TEST"

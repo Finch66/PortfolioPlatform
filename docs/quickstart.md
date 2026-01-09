@@ -29,6 +29,30 @@ Invoke-RestMethod -Method Post -Uri "http://localhost:8000/transactions" -Conten
 Invoke-RestMethod -Method Get -Uri "http://localhost:8000/transactions"
 ```
 
+## Import CSV
+- Endpoint: `POST /imports/transactions` (multipart file `file`)
+- Esempio file: `docs/sample-portfolio.csv`
+
+PowerShell:
+```powershell
+$form = @{ file = Get-Item ".\\docs\\sample-portfolio.csv" }
+Invoke-RestMethod -Method Post -Uri "http://localhost:8000/imports/transactions" -Form $form
+```
+
+## Portfolio (snapshot + metriche)
+- `GET /portfolio` restituisce holdings, metriche e allocazioni.
+- `GET /portfolio/metrics` metriche aggregate.
+- `GET /portfolio/allocation` distribuzioni per asset_type e currency.
+
+## Frontend (mini UI React)
+```bash
+cd frontend
+npm install
+npm run dev
+```
+- UI su http://localhost:5173
+- API su http://localhost:8000 (configurabile con `VITE_API_BASE_URL`)
+
 ## Sviluppo locale senza container
 - Avvia Postgres locale e esporta `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/transactions`.
 - Da `services/transaction`: `uvicorn app.main:app --reload`
@@ -46,6 +70,7 @@ Invoke-RestMethod -Method Get -Uri "http://localhost:8000/transactions"
 - `.\scripts\logs.ps1`
 - `.\scripts\test.ps1` (ricorda di attivare la venv prima)
 - `.\scripts\migrate.ps1` (applica le migrazioni Alembic al Postgres del compose esposto su localhost; richiede venv attiva con alembic)
+- `.\scripts\start-all.ps1` (avvia Docker, migrazioni e frontend)
 
 ## Migrazioni (Alembic)
 - Installazione dipendenze dev già include `alembic`.
@@ -53,6 +78,10 @@ Invoke-RestMethod -Method Get -Uri "http://localhost:8000/transactions"
 - Comando base (da `services/transaction`): `alembic upgrade head` (usa `DATABASE_URL` corrente).
 - Generare nuova migrazione: `alembic revision --autogenerate -m "desc"` dopo aver modificato i modelli SQLModel.
 - Gli script sono in `services/transaction/migrations/`.
+
+## Note migrazioni
+- Script consigliato: `.\scripts\migrate.ps1` (imposta `DATABASE_URL` sul Postgres locale se mancante).
+- Spiegazione: `docs/alembic.md`.
 
 ## Idempotenza & API
 - Le POST supportano header `Idempotency-Key`: se ripeti la stessa chiave, ritorna la transazione già creata.

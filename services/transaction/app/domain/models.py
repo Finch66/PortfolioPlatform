@@ -12,6 +12,8 @@ class OperationType(str, Enum):
 class Transaction(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     asset_id: str
+    asset_name: str | None = Field(default=None, nullable=True)
+    asset_type: str | None = Field(default=None, nullable=True)
     operation_type: OperationType
     quantity: float
     price: float
