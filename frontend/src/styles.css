@@ -86,6 +86,10 @@ body {
   animation: fade-up 0.6s ease-out;
 }
 
+.chart-card {
+  min-height: 320px;
+}
+
 .stat-card {
   display: grid;
   gap: 6px;
@@ -222,6 +226,32 @@ body {
   overflow-x: auto;
 }
 
+.table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.table-controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.table-controls input,
+.table-controls select {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-family: inherit;
+}
+
+.table-controls input {
+  min-width: 220px;
+}
+
 .table {
   display: grid;
   gap: 12px;
@@ -283,6 +313,11 @@ body {
 
 @media (max-width: 768px) {
   .hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .table-header {
     flex-direction: column;
     align-items: flex-start;
   }

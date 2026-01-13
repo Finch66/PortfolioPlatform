@@ -67,6 +67,7 @@ npm run dev
 ```
 - UI su http://localhost:5173
 - API su http://localhost:8000 (configurabile con `VITE_API_BASE_URL`)
+- Vite aggiornato a v7.x dopo `npm audit fix --force`.
 
 ## Documentazione utile
 - Roadmap: `portfolio-event-driven-roadmap.md`

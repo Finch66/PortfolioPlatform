@@ -70,3 +70,5 @@ Start-Process powershell -ArgumentList "-NoExit", "-Command", $command
 Write-Host ""
 Write-Host "Backend: http://localhost:8000/docs" -ForegroundColor Green
 Write-Host "Frontend: http://localhost:5173" -ForegroundColor Green
+
+Start-Process "http://localhost:5173"

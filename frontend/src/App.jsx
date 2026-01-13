@@ -1,4 +1,16 @@
 import React, { useEffect, useMemo, useState } from "react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis
+} from "recharts";
 import { fetchPortfolio, importTransactionsCsv } from "./api";
 
 const numberFormatter = new Intl.NumberFormat("en-US", {
@@ -58,6 +70,9 @@ export default function App() {
   const [error, setError] = useState("");
   const [file, setFile] = useState(null);
   const [importState, setImportState] = useState({ status: "idle", result: null, error: "" });
+  const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState("market_value");
+  const [sortDir, setSortDir] = useState("desc");
 
   const loadPortfolio = async () => {
     setLoading(true);
@@ -85,6 +100,44 @@ export default function App() {
       total_unrealized_pl_pct: 0
     };
   }, [portfolio]);
+
+  const allocationByType = portfolio?.allocation?.by_asset_type || [];
+  const allocationByCurrency = portfolio?.allocation?.by_currency || [];
+
+  const chartColors = ["#f07c3b", "#ffb174", "#f2a65a", "#e36e3f", "#f6c28b"];
+
+  const holdings = useMemo(() => portfolio?.holdings || [], [portfolio]);
+  const filteredHoldings = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    const filtered = term
+      ? holdings.filter((holding) =>
+          [holding.asset_id, holding.asset_name, holding.asset_type]
+            .join(" ")
+            .toLowerCase()
+            .includes(term)
+        )
+      : holdings;
+
+    const sorted = [...filtered].sort((a, b) => {
+      const dir = sortDir === "asc" ? 1 : -1;
+      const key = sortKey;
+      if (typeof a[key] === "number" && typeof b[key] === "number") {
+        return (a[key] - b[key]) * dir;
+      }
+      return String(a[key]).localeCompare(String(b[key])) * dir;
+    });
+    return sorted;
+  }, [holdings, search, sortKey, sortDir]);
+
+  const topHoldings = useMemo(() => {
+    return [...holdings]
+      .sort((a, b) => b.market_value - a.market_value)
+      .slice(0, 6)
+      .map((holding) => ({
+        name: holding.asset_id,
+        value: holding.market_value
+      }));
+  }, [holdings]);
 
   const onFileChange = (event) => {
     setFile(event.target.files?.[0] || null);
@@ -181,9 +234,69 @@ export default function App() {
         <AllocationBlock title="Allocation by Currency" buckets={portfolio?.allocation?.by_currency} />
       </div>
 
+      <div className="grid two-col">
+        <div className="card chart-card">
+          <h3>Allocation (Asset Type)</h3>
+          {!allocationByType.length ? (
+            <p className="muted">Nessuna allocazione disponibile.</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie data={allocationByType} dataKey="market_value" nameKey="label" innerRadius={60} outerRadius={90}>
+                  {allocationByType.map((entry, index) => (
+                    <Cell key={entry.label} fill={chartColors[index % chartColors.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => numberFormatter.format(value)} />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+
+        <div className="card chart-card">
+          <h3>Top Holdings (Market Value)</h3>
+          {!topHoldings.length ? (
+            <p className="muted">Nessuna posizione disponibile.</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={topHoldings}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.08)" />
+                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                <YAxis tickFormatter={(value) => numberFormatter.format(value)} />
+                <Tooltip formatter={(value) => numberFormatter.format(value)} />
+                <Bar dataKey="value" fill="#f07c3b" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </div>
+
       <div className="card table-card">
-        <h3>Holdings</h3>
-        {!portfolio?.holdings?.length ? (
+        <div className="table-header">
+          <div>
+            <h3>Holdings</h3>
+            <p className="muted">Filtra e ordina le posizioni per analizzarle piu` velocemente.</p>
+          </div>
+          <div className="table-controls">
+            <input
+              type="text"
+              placeholder="Cerca asset, nome o tipo"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+            <select value={sortKey} onChange={(event) => setSortKey(event.target.value)}>
+              <option value="market_value">Market Value</option>
+              <option value="unrealized_pl">P/L</option>
+              <option value="quantity">Quantita`</option>
+              <option value="asset_id">Asset</option>
+              <option value="asset_type">Tipo</option>
+            </select>
+            <button className="ghost" onClick={() => setSortDir(sortDir === "asc" ? "desc" : "asc")}>
+              {sortDir === "asc" ? "Asc" : "Desc"}
+            </button>
+          </div>
+        </div>
+        {!filteredHoldings.length ? (
           <p className="muted">Nessuna posizione: importa un CSV per iniziare.</p>
         ) : (
           <div className="table">
@@ -196,7 +309,7 @@ export default function App() {
               <span>Market Value</span>
               <span>P/L</span>
             </div>
-            {portfolio.holdings.map((holding) => (
+            {filteredHoldings.map((holding) => (
               <div className="table-row" key={`${holding.asset_id}-${holding.currency}`}>
                 <span>
                   <strong>{holding.asset_id}</strong>
