@@ -3,10 +3,20 @@ $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
 Write-Host "Starting Docker containers..." -ForegroundColor Cyan
+$dockerInfo = docker info 2>$null
+if (-not $dockerInfo) {
+    Write-Host "Docker Desktop not running. Start Docker Desktop and re-run this script." -ForegroundColor Yellow
+    return
+}
 docker compose up -d --build
 
 Write-Host "Applying migrations..." -ForegroundColor Cyan
-& "$root\\scripts\\migrate.ps1"
+try {
+    & "$root\\scripts\\migrate.ps1"
+} catch {
+    Write-Host "Migrations failed. Is Postgres running? Try 'docker compose ps'." -ForegroundColor Yellow
+    return
+}
 
 $frontendPath = Join-Path $root "frontend"
 $npmCmd = $null
